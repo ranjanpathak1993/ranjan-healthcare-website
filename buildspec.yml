@@ -1,28 +1,44 @@
 version: 0.2
 
+env:
+  variables:
+    IMAGE_TAG: latest
+
 phases:
   install:
     runtime-versions:
       docker: 18
     commands:
-      - echo "🔧 Updating system and installing Docker..."
+      - echo "🔧 Installing Docker..."
       - yum update -y
       - yum install -y docker
       - service docker start
-      - echo "✅ Docker installed and started."
+      - echo "✅ Docker installed."
+
+  pre_build:
+    commands:
+      - echo "🔐 Logging in to Amazon ECR..."
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 957704841723.dkr.ecr.us-east-1.amazonaws.com
+      - echo "✅ Logged in to ECR."
 
   build:
     commands:
+      - echo "📂 Listing files..."
+      - ls -al
       - echo "🚀 Building Docker images using docker-compose..."
-      - docker-compose -f docker-compose.yml build
-      - echo "✅ Docker images built successfully."
+      - docker-compose build
+      - echo "✅ Docker images built."
 
   post_build:
     commands:
-      - echo "📦 Starting Docker containers..."
-      - docker-compose -f docker-compose.yml up -d
-      - echo "✅ Containers started successfully."
+      - echo "🏷️ Tagging and pushing images to ECR..."
+      - docker tag frontend_ranjan_frontend:latest 957704841723.dkr.ecr.us-east-1.amazonaws.com/frontend:$IMAGE_TAG
+      - docker tag backend_ranjan_backend:latest 957704841723.dkr.ecr.us-east-1.amazonaws.com/backend:$IMAGE_TAG
+      - docker push 957704841723.dkr.ecr.us-east-1.amazonaws.com/frontend:$IMAGE_TAG
+      - docker push 957704841723.dkr.ecr.us-east-1.amazonaws.com/backend:$IMAGE_TAG
+      - echo "✅ Images pushed to ECR."
 
 artifacts:
   files:
     - '**/*'
+``
