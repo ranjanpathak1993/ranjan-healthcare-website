@@ -1,5 +1,9 @@
 version: 0.2
 
+env:
+  variables:
+    IMAGE_TAG: latest
+
 phases:
   install:
     runtime-versions:
@@ -11,6 +15,12 @@ phases:
       - service docker start
       - echo "✅ Docker installed."
 
+  pre_build:
+    commands:
+      - echo "🔐 Logging in to Amazon ECR..."
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 957704841723.dkr.ecr.us-east-1.amazonaws.com
+      - echo "✅ Logged in to ECR."
+
   build:
     commands:
       - echo "📂 Listing files..."
@@ -21,9 +31,12 @@ phases:
 
   post_build:
     commands:
-      - echo "📦 Starting Docker containers..."
-      - docker-compose -f docker-compose.yml up -d
-      - echo "✅ Containers started."
+      - echo "🏷️ Tagging and pushing images to ECR..."
+      - docker tag frontend:latest 957704841723.dkr.ecr.us-east-1.amazonaws.com/frontend:$IMAGE_TAG
+      - docker tag backend:latest 957704841723.dkr.ecr.us-east-1.amazonaws.com/backend:$IMAGE_TAG
+      - docker push 957704841723.dkr.ecr.us-east-1.amazonaws.com/frontend:$IMAGE_TAG
+      - docker push 957704841723.dkr.ecr.us-east-1.amazonaws.com/backend:$IMAGE_TAG
+      - echo "✅ Images pushed to ECR."
 
 artifacts:
   files:
