@@ -1,37 +1,30 @@
-version: '3.8'
+version: 0.2
 
-services:
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: ranjan_backend
-    ports:
-      - "5000:5000"
-    restart: always
-    environment:
-      - NODE_ENV=production
-    depends_on:
-      - mongo
+phases:
+  install:
+    runtime-versions:
+      docker: 18
+    commands:
+      - echo "🔧 Installing Docker..."
+      - yum update -y
+      - yum install -y docker
+      - service docker start
+      - echo "✅ Docker installed."
 
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: ranjan_frontend
-    ports:
-      - "3000:3000"
-    restart: always
-    environment:
-      - NODE_ENV=production
+  build:
+    commands:
+      - echo "📂 Listing files..."
+      - ls -al
+      - echo "🚀 Building Docker images using docker-compose..."
+      - docker-compose -f docker-compose.yml build
+      - echo "✅ Docker images built."
 
-  mongo:
-    image: mongo:latest
-    container_name: ranjan_mongo
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
+  post_build:
+    commands:
+      - echo "📦 Starting Docker containers..."
+      - docker-compose -f docker-compose.yml up -d
+      - echo "✅ Containers started."
 
-volumes:
-  mongo_data:
+artifacts:
+  files:
+    - '**/*'
