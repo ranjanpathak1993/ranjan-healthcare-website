@@ -1,43 +1,38 @@
-version: 0.2
+version: '3.8'
 
-env:
-  variables:
-    IMAGE_TAG: latest
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ranjan_frontend
+    ports:
+      - "3000:3000"
+    restart: always
+    environment:
+      - NODE_ENV=production
 
-phases:
-  install:
-    runtime-versions:
-      docker: 18
-    commands:
-      - echo "🔧 Installing Docker..."
-      - yum update -y
-      - yum install -y docker
-      - service docker start
-      - echo "✅ Docker installed."
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ranjan_backend
+    ports:
+      - "5000:5000"
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - MONGO_URL=mongodb://mongo:27017/ranjan_healthcare
+    depends_on:
+      - mongo
 
-  pre_build:
-    commands:
-      - echo "🔐 Logging in to Amazon ECR..."
-      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 957704841723.dkr.ecr.us-east-1.amazonaws.com
-      - echo "✅ Logged in to ECR."
+  mongo:
+    image: mongo:latest
+    container_name: ranjan_mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
 
-  build:
-    commands:
-      - echo "📂 Listing files..."
-      - ls -al
-      - echo "🚀 Building Docker images using docker-compose..."
-      - docker-compose -f docker-compose.yml build
-      - echo "✅ Docker images built."
-
-  post_build:
-    commands:
-      - echo "🏷️ Tagging and pushing images to ECR..."
-      - docker tag frontend:latest 957704841723.dkr.ecr.us-east-1.amazonaws.com/frontend:$IMAGE_TAG
-      - docker tag backend:latest 957704841723.dkr.ecr.us-east-1.amazonaws.com/backend:$IMAGE_TAG
-      - docker push 957704841723.dkr.ecr.us-east-1.amazonaws.com/frontend:$IMAGE_TAG
-      - docker push 957704841723.dkr.ecr.us-east-1.amazonaws.com/backend:$IMAGE_TAG
-      - echo "✅ Images pushed to ECR."
-
-artifacts:
-  files:
-    - '**/*'
+volumes:
+  mongo_data:
