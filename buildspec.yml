@@ -2,44 +2,38 @@ version: 0.2
 
 env:
   variables:
-    ImageName: ranjan-healthcare
-
+    IMAGE_TAG: latest
+    AWS_REGION: us-east-1
+    ECR_URI: 957704841723.dkr.ecr.us-east-1.amazonaws.com
 phases:
+  install:
+    runtime-versions:
+      docker: 20
+    commands:
+      - echo "✅ Docker runtime ready."
+
   pre_build:
     commands:
-      - echo Logging in to Amazon ECR...
-      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 957704841723.dkr.ecr.us-east-1.amazonaws.com
-
-  build:
-    commands:
-      - echo Building the Docker image...
-      - docker build -t $ImageName .
-      - docker tag $ImageName:latest 957704841723.dkr.ecr.us-east-1.amazonaws.com/$ImageName:latest
-
-  post_build:
-    commands:
-      - echo Pushing the Docker image...
-      - docker push 957704841723.dkr.ecr.us-east-1.amazonaws.com/$ImageName:latest
-``
-
-  build:
-    commands:
+      - echo "🔐 Logging in to Amazon ECR..."
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_URI
       - echo "📂 Listing files..."
       - ls -al
+
+  build:
+    commands:
       - echo "🚀 Building Docker images using docker-compose..."
       - docker-compose build
-      - echo "✅ Docker images built."
+      - echo "🏷️ Tagging images..."
+      - docker tag frontend_ranjan_frontend:latest $ECR_URI/frontend:$IMAGE_TAG
+      - docker tag backend_ranjan_backend:latest $ECR_URI/backend:$IMAGE_TAG
 
   post_build:
     commands:
-      - echo "🏷️ Tagging and pushing images to ECR..."
-      - docker tag frontend_ranjan_frontend:latest 957704841723.dkr.ecr.us-east-1.amazonaws.com/frontend:$IMAGE_TAG
-      - docker tag backend_ranjan_backend:latest 957704841723.dkr.ecr.us-east-1.amazonaws.com/backend:$IMAGE_TAG
-      - docker push 957704841723.dkr.ecr.us-east-1.amazonaws.com/frontend:$IMAGE_TAG
-      - docker push 957704841723.dkr.ecr.us-east-1.amazonaws.com/backend:$IMAGE_TAG
-      - echo "✅ Images pushed to ECR."
+      - echo "📤 Pushing images to ECR..."
+      - docker push $ECR_URI/frontend:$IMAGE_TAG
+      - docker push $ECR_URI/backend:$IMAGE_TAG
+      - echo "✅ Images pushed successfully."
 
 artifacts:
   files:
     - '**/*'
-``
