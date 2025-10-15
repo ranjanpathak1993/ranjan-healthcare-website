@@ -19,6 +19,7 @@ phases:
       - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_URI
       - echo "📂 Listing files..."
       - ls -al
+
   build:
     commands:
       - echo "🚀 Building Docker images using docker-compose..."
