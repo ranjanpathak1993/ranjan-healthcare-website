@@ -2,24 +2,25 @@ version: 0.2
 
 env:
   variables:
-    IMAGE_TAG: latest
+    ImageName: ranjan-healthcare
 
 phases:
-  install:
-    runtime-versions:
-      docker: 18
-    commands:
-      - echo "🔧 Installing Docker..."
-      - yum update -y
-      - yum install -y docker
-      - service docker start
-      - echo "✅ Docker installed."
-
   pre_build:
     commands:
-      - echo "🔐 Logging in to Amazon ECR..."
+      - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 957704841723.dkr.ecr.us-east-1.amazonaws.com
-      - echo "✅ Logged in to ECR."
+
+  build:
+    commands:
+      - echo Building the Docker image...
+      - docker build -t $ImageName .
+      - docker tag $ImageName:latest 957704841723.dkr.ecr.us-east-1.amazonaws.com/$ImageName:latest
+
+  post_build:
+    commands:
+      - echo Pushing the Docker image...
+      - docker push 957704841723.dkr.ecr.us-east-1.amazonaws.com/$ImageName:latest
+``
 
   build:
     commands:
