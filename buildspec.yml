@@ -5,6 +5,7 @@ env:
     IMAGE_TAG: latest
     AWS_REGION: us-east-1
     ECR_URI: 957704841723.dkr.ecr.us-east-1.amazonaws.com
+
 phases:
   install:
     runtime-versions:
@@ -18,14 +19,13 @@ phases:
       - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_URI
       - echo "📂 Listing files..."
       - ls -al
-
   build:
     commands:
       - echo "🚀 Building Docker images using docker-compose..."
       - docker-compose build
       - echo "🏷️ Tagging images..."
-      - docker tag frontend_ranjan_frontend:latest $ECR_URI/frontend:$IMAGE_TAG
-      - docker tag backend_ranjan_backend:latest $ECR_URI/backend:$IMAGE_TAG
+      - docker tag ranjan-healthcare-website_frontend:latest $ECR_URI/frontend:$IMAGE_TAG
+      - docker tag ranjan-healthcare-website_backend:latest $ECR_URI/backend:$IMAGE_TAG
 
   post_build:
     commands:
