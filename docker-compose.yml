@@ -8,9 +8,6 @@ services:
     container_name: ranjan_frontend
     ports:
       - "3000:3000"
-    restart: always
-    environment:
-      - NODE_ENV=production
 
   backend:
     build:
@@ -19,20 +16,3 @@ services:
     container_name: ranjan_backend
     ports:
       - "5000:5000"
-    restart: always
-    environment:
-      - NODE_ENV=production
-      - MONGO_URL=mongodb://mongo:27017/ranjan_healthcare
-    depends_on:
-      - mongo
-
-  mongo:
-    image: mongo:latest
-    container_name: ranjan_mongo
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
-
-volumes:
-  mongo_data:
