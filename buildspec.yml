@@ -1,0 +1,24 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      docker: 18
+    commands:
+      - echo Installing Docker...
+      - yum install -y docker
+      - service docker start
+
+  build:
+    commands:
+      - echo Building Docker images...
+      - docker-compose -f docker-compose.yml build
+
+  post_build:
+    commands:
+      - echo Starting containers...
+      - docker-compose up -d
+
+artifacts:
+  files:
+    - '**/*'
